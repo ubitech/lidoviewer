@@ -1,0 +1,82 @@
+<binding xmlns="http://www.castor.org/SourceGenerator/Binding" 
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+            xsi:schemaLocation="http://www.castor.org/SourceGenerator/Binding
+                /home/pgouvas/workspace/lidoviewer/src/main/resources/lido-v1.0.xsd" 
+            defaultBinding="element">
+
+   <elementBinding name="/lido">
+      <java-class name="Lido"/>
+   </elementBinding>
+	
+   <elementBinding name="/lidoWrap/lido">
+      <java-class name="LidoElement"/>
+   </elementBinding>
+
+   <elementBinding name="/administrativeMetadata">
+      <java-class name="AdministrativeMetadata"/>
+   </elementBinding>
+	
+   <elementBinding name="/complexType:lidoComplexType/administrativeMetadata">
+      <java-class name="LidoAdministrativeMetadata"/>
+   </elementBinding>
+   
+   <elementBinding name="/descriptiveMetadata">
+      <java-class name="DescriptiveMetadata"/>
+   </elementBinding>
+	
+   <elementBinding name="/complexType:lidoComplexType/descriptiveMetadata">
+      <java-class name="LidoDescriptiveMetadata"/>
+   </elementBinding>   
+   
+   <elementBinding name="/complexType:actorSetComplexType/actor">
+      <java-class name="Actor"/>
+   </elementBinding>
+	
+   <elementBinding name="/complexType:actorInRoleComplexType/actor">
+      <java-class name="InRoleActor"/>
+   </elementBinding>   
+
+<!--	
+   <elementBinding name="/complexType:MetadataType">
+      <java-class name="MetadataType"/>
+   </elementBinding>	
+
+   <elementBinding name="/AdministrativeMetadata">
+      <java-class name="AdministrativeMetadata"/>
+   </elementBinding>
+	
+   <elementBinding name="/complexType:MetadataType/AdministrativeMetadata">
+      <java-class name="AdministrativeMetadataEntity"/>
+   </elementBinding>
+
+   <elementBinding name="/complexType:AdministrativeMetadataType">
+      <java-class name="AdministrativeMetadataType"/>
+   </elementBinding>
+
+   <elementBinding name="/ContentDescriptiveMetadata">
+      <java-class name="ContentDescriptiveMetadata"/>
+   </elementBinding>
+	
+   <elementBinding name="/complexType:MetadataType/ContentDescriptiveMetadata">
+      <java-class name="ContentDescriptiveMetadataEntity"/>
+   </elementBinding>	
+
+   <elementBinding name="/complexType:ContentDescriptiveMetadataType">
+      <java-class name="ContentDescriptiveMetadataType"/>
+   </elementBinding>	
+	
+   <elementBinding name="/ObjectDescriptiveMetadata">
+      <java-class name="ObjectDescriptiveMetadata"/>
+   </elementBinding>
+	
+   <elementBinding name="/complexType:MetadataType/ObjectDescriptiveMetadata">
+      <java-class name="ObjectDescriptiveMetadataEntity"/>
+   </elementBinding>
+
+   <elementBinding name="/complexType:ObjectDescriptiveMetadataType">
+      <java-class name="ObjectDescriptiveMetadataType"/>
+   </elementBinding>
+-->
+
+</binding>
+
