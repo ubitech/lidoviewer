@@ -1,2 +1,12 @@
 /target/
 /Users/Danae/.netbeans/
+compile.sh
+faces-config.NavData
+nb-configuration.xml
+bin/
+out/
+target/
+lib/
+.idea/
+*.iws
+*iml
