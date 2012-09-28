@@ -43,7 +43,7 @@
                            <port>9999</port>
                            <username>admin</username>
                            <password>jboss</password>
-                           <filename>#{finalName}.war</filename>
+                           <filename>${finalName}.war</filename>
                        </configuration>
 
                        <!-- Local configuration -->
