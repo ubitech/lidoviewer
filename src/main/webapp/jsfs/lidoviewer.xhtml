@@ -7,19 +7,80 @@
       xmlns:a4j="http://richfaces.org/a4j" 
       xmlns:rich="http://richfaces.org/rich" template="/templates/template.xhtml"
       xmlns:fn="http://java.sun.com/jsp/jstl/functions"   >
+    
+    <ui:define name="logo">
+        <h:graphicImage id="logoimg" url="../resources/images/#{lidoBean.logoImage}" rendered="#{not empty lidoBean.logoImage}"/>
+    </ui:define>
 
-     
+    <ui:define name="languages">
+        <ui:repeat var="language" value="#{lidoBean.languagesList}" varStatus="status">
+            <h:outputLink value="#{lidoBean.currentUrl}&amp;baselang=#{language}">#{language}</h:outputLink>&nbsp;
+        </ui:repeat>     
+    </ui:define>    
+   
     <ui:define name="content">
-        
+  <!--
+        <h:outputText value="#{lidoBean.skin}" rendered="#{not empty lidoBean.skin}"/>
+        <h:outputText value="#{initParam['org.richfaces.skin']}" />
+  -->
         <h:panelGroup id="mastergroup"  >
-            <h:panelGrid columns="2">  
+            <h:panelGrid columns="3" columnClasses="upper,seperator,upper">
                 
-                <rich:panel header="Gallery" rendered="#{not empty lidoBean.reslink}" >  
-                   <h:graphicImage value="#{lidoBean.reslink}" style="float:none" />
-               </rich:panel>     
+                <h:panelGrid columns="1" columnClasses="upper">               
+                    <rich:panel header="Gallery" rendered="#{not empty lidoBean.reslink}">  
+                        <center><h:graphicImage value="#{lidoBean.reslink}" style="float: none;" /></center>
+                    </rich:panel>
+                    
+                    <rich:panel header="Record Description">            
+                    <h:panelGroup id="recordgroup"  >
+                        <h:form id="form3">
+                        <h:panelGrid columns="2">                            
+                            <h:outputText value="#{lidoBean.recpreflbl}:"   style="font-weight:bold"  rendered="#{not empty lidoBean.recpref}"/>
+                            <h:outputText value="#{lidoBean.recpref}"                                 rendered="#{not empty lidoBean.recpref}"/>                       
+
+                            <h:outputText value="#{lidoBean.rectypelbl}:"   style="font-weight:bold"  rendered="#{not empty lidoBean.rectype}"/>
+                            <h:outputText value="#{lidoBean.rectype}"                                 rendered="#{not empty lidoBean.rectype}"/>
+
+                            <h:outputText value="#{lidoBean.recsourcelbl}:" style="font-weight:bold"  rendered="#{not empty lidoBean.recsource}"/>
+                            <h:outputText value="#{lidoBean.recsource}"                               rendered="#{not empty lidoBean.recsource}"/>                     
+
+                            <h:outputText value="#{lidoBean.recenclbl}:"    style="font-weight:bold"  rendered="#{not empty lidoBean.recenc}"/>
+                            <h:outputText value="#{lidoBean.recenc}"                                  rendered="#{not empty lidoBean.recenc}"/>  
+
+                            <h:outputText value="#{lidoBean.reclabellbl}:"  style="font-weight:bold"  rendered="#{not empty lidoBean.reclabel}"/>
+                            <h:outputText value="#{lidoBean.reclabel}"                                rendered="#{not empty lidoBean.reclabel}"/>  
+
+                            <h:outputText value="#{lidoBean.recordidlbl}:"  style="font-weight:bold"  rendered="#{not empty lidoBean.recordid}"/>
+                            <h:outputText value="#{lidoBean.recordid}"                                rendered="#{not empty lidoBean.recordid}"/>
+                            
+                            <h:outputText value="#{lidoBean.conceptidlbl}:"  style="font-weight:bold"  rendered="#{not empty lidoBean.conceptid}"/>
+                            <h:outputText value="#{lidoBean.conceptid}"                               rendered="#{not empty lidoBean.conceptid}"/>
+                            
+                            <h:outputText value="#{lidoBean.categorytermlbl}:"  style="font-weight:bold"  rendered="#{not empty lidoBean.categoryterm}"/>
+                            <h:outputText value="#{lidoBean.categoryterm}"                               rendered="#{not empty lidoBean.categoryterm}"/>
+                            
+                            <h:outputText value="#{lidoBean.repositorynamelbl}:"  style="font-weight:bold"  rendered="#{not empty lidoBean.repositoryname}"/>
+                            <h:outputText value="#{lidoBean.repositoryname}"                               rendered="#{not empty lidoBean.repositoryname}"/>
+                            
+                            <h:outputText value="#{lidoBean.repositoryworkidlbl}:"  style="font-weight:bold"  rendered="#{not empty lidoBean.repositoryworkid}"/>
+                            <h:outputText value="#{lidoBean.repositoryworkid}"                               rendered="#{not empty lidoBean.repositoryworkid}"/>
+                            
+                            <h:outputText value="#{lidoBean.measurementlbl}:"  style="font-weight:bold"  rendered="#{not empty lidoBean.omeasurement}"/>
+                            <h:outputText value="#{lidoBean.omeasurement}"                               rendered="#{not empty lidoBean.omeasurement}"/>
+                        
+                        </h:panelGrid>
+                            </h:form>
+                    </h:panelGroup>           
+                </rich:panel>
                 
-               <rich:panel header="Descriptive Metadata">  
-                    <h:panelGroup id="descrgroup"  >
+                                    
+               </h:panelGrid>
+                <h:panelGrid columns="1" columnClasses="seperator">
+                    
+                </h:panelGrid>
+               <h:panelGrid columns="1" columnClasses="upper">
+                   <rich:panel header="Descriptive Metadata">  
+                    <h:panelGroup id="descrgroup" rendered="#{not empty lidoBean.otitle}">
                         <h:panelGrid columns="2"> 
                             <h:outputText value="#{lidoBean.otitlelbl}:"   style="font-weight:bold"  rendered="#{not empty lidoBean.otitle}"/>
                             <h:outputText value="#{lidoBean.otitle}"                                 rendered="#{not empty lidoBean.otitle}"/>                       
@@ -30,9 +91,9 @@
                             <h:outputText value="#{lidoBean.typelbl}:"   style="font-weight:bold"  rendered="#{not empty lidoBean.type}"/>
                             <h:outputText value="#{lidoBean.type}"                                 rendered="#{not empty lidoBean.type}"/>                                                        
                         </h:panelGrid>
-                        
+                                                
                         <h:form id="form1">
-                            <h:panelGrid width="100%" >
+                            <h:panelGrid width="100%" rendered="#{not empty lidoBean.subconceptterms}}">
                                 <rich:dataTable id="subtable" value="#{lidoBean.subconceptterms}" var="term" iterationStatusVar="it"  rows="7"  >
                                     <rich:column width="10%">
                                         <f:facet name="header"> <h:outputText value="Index" /></f:facet>
@@ -48,7 +109,7 @@
                         </h:form>
 
                         <h:form id="form2">
-                            <h:panelGrid width="100%" >
+                            <h:panelGrid width="100%" rendered="#{not empty lidoBean.events}}">
                                 <rich:dataTable id="eventtable" value="#{lidoBean.events}" var="event" iterationStatusVar="it"  rows="7"  >
                                     <rich:column >
                                         <f:facet name="header"> <h:outputText value="Index" /></f:facet>
@@ -76,37 +137,64 @@
                         </h:form>                        
                         
                     </h:panelGroup>                               
-               </rich:panel>                     
+               </rich:panel>
                 
                 
-                <rich:panel header="Record Description">            
-                    <h:panelGroup id="recordgroup"  >
-                        <h:panelGrid columns="2">  
-                            <h:outputText value="#{lidoBean.recpreflbl}:"   style="font-weight:bold"  rendered="#{not empty lidoBean.recpref}"/>
-                            <h:outputText value="#{lidoBean.recpref}"                                 rendered="#{not empty lidoBean.recpref}"/>                       
+               <rich:panel header="Administrative Metadata" rendered="#{not empty lidoBean.recWraprecid}"> 
+                   <h:panelGroup id="admingroup">
+                       
+                       <h:panelGrid columns="2"> 
+                            <h:outputText value="#{lidoBean.recWraprecidlbl}:"   style="font-weight:bold"  rendered="#{not empty lidoBean.recWraprecid}"/>
+                            <h:outputText value="#{lidoBean.recWraprecid}"        escape="false"  rendered="#{not empty lidoBean.recWraprecid}"/>                       
 
-                            <h:outputText value="#{lidoBean.rectypelbl}:"   style="font-weight:bold"  rendered="#{not empty lidoBean.rectype}"/>
-                            <h:outputText value="#{lidoBean.rectype}"                                 rendered="#{not empty lidoBean.rectype}"/>
-
-                            <h:outputText value="#{lidoBean.recsourcelbl}:" style="font-weight:bold"  rendered="#{not empty lidoBean.recsource}"/>
-                            <h:outputText value="#{lidoBean.recsource}"                               rendered="#{not empty lidoBean.recsource}"/>                     
-
-                            <h:outputText value="#{lidoBean.recenclbl}:"    style="font-weight:bold"  rendered="#{not empty lidoBean.recenc}"/>
-                            <h:outputText value="#{lidoBean.recenc}"                                  rendered="#{not empty lidoBean.recenc}"/>  
-
-                            <h:outputText value="#{lidoBean.reclabellbl}:"  style="font-weight:bold"  rendered="#{not empty lidoBean.reclabel}"/>
-                            <h:outputText value="#{lidoBean.reclabel}"                                rendered="#{not empty lidoBean.reclabel}"/>  
-
-                            <h:outputText value="#{lidoBean.recordidlbl}:"  style="font-weight:bold"  rendered="#{not empty lidoBean.recordid}"/>
-                            <h:outputText value="#{lidoBean.recordid}"                                rendered="#{not empty lidoBean.recordid}"/>
+                            <h:outputText value="#{lidoBean.recWraprectypelbl}:"   style="font-weight:bold"  rendered="#{not empty lidoBean.recWraprectype}"/>
+                            <h:outputText value="#{lidoBean.recWraprectype}"                                 rendered="#{not empty lidoBean.recWraprectype}"/>   
+                            
+                            <h:outputText value="#{lidoBean.recWraprecsourcelbl}:"   style="font-weight:bold"  rendered="#{not empty lidoBean.recWraprecsource}"/>
+                            <h:outputText value="#{lidoBean.recWraprecsource}"        escape="false" rendered="#{not empty lidoBean.recWraprecsource}"/>
+                            
+                            <h:outputText value="#{lidoBean.recWraprecrightslbl}:"   style="font-weight:bold"  rendered="#{not empty lidoBean.recWraprecrights}"/>
+                            <h:outputText value="#{lidoBean.recWraprecrights}"        escape="false" rendered="#{not empty lidoBean.recWraprecrights}"/>
                         </h:panelGrid>
-                    </h:panelGroup>           
-                </rich:panel>
-                
-               <rich:panel header="Administrative Metadata">  
+                       
+                       
+                       <h:panelGrid width="100%" rendered="#{not empty lidoBean.adminResources}">
+                           <rich:dataTable id="adminresourcestable" value="#{lidoBean.adminResources}" iterationStatusVar="it" var="adminresource" rows="1">
+                               <rich:column>
+                               <f:facet name="header">
+                                   <h:outputText value="Resource link" style="font-weight:bold"></h:outputText>
+                               </f:facet>
+                                   <h:graphicImage value="#{adminresource.resourceLink}" rendered="#{not empty adminresource.resourceLink}" style="float:none" />
+                                   
+                               </rich:column>
+                               
+                               <rich:column>
+                               <f:facet name="header">
+                                   <h:outputText value="Measurements" style="font-weight:bold"></h:outputText>
+                               </f:facet>
+                                   <h:outputText value="#{adminresource.measurementType}: #{adminresource.measurementValue} #{adminresource.measurementUnit}" rendered="#{not empty adminresource.measurementType}"/>
+                               </rich:column>
+                                                             
+                               <rich:dataScroller for="adminresourcestable" maxPages="3" /> 
+                           </rich:dataTable>
+                           <rich:dataScroller for="adminresourcestable" maxPages="5" />
+                           </h:panelGrid>
+                               <!--
+                           <h:outputText value="#{lidoBean.reslinklbl}:" style="font-weight:bold"  rendered="#{not empty lidoBean.recordid}"/>
+                           <h:outputText value="#{lidoBean.reslink}"                               rendered="#{not empty lidoBean.reslink}"/>
+                           
+                           <h:outputText value="#{lidoBean.measurementlbl}:" style="font-weight:bold"  rendered="#{not empty lidoBean.recordid}"/>
+                           <h:outputText value="#{lidoBean.measurementType}"                               rendered="#{not empty lidoBean.reslink}"/>
+                               -->
+                       
+                   </h:panelGroup>
                </rich:panel>                 
                 
+            </h:panelGrid> 
             </h:panelGrid>
+            
+            
+               
         </h:panelGroup>
     </ui:define>
 </ui:composition>    

@@ -16,6 +16,6 @@
 		<base-name>properties.lidodeu</base-name>
 		<var>msgdeu</var>
 	   </resource-bundle>           
-     </application>  
+     </application>
     
 </faces-config>

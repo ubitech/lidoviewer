@@ -1,48 +1,23 @@
 package beans;
 
-import eu.dca.model.ActorInRole;
-import eu.dca.model.AdministrativeMetadata;
-import eu.dca.model.AppellationValue;
-import eu.dca.model.Date;
-import eu.dca.model.DisplayActorInRole;
-import eu.dca.model.EarliestDate;
-import eu.dca.model.Event;
-import eu.dca.model.EventActor;
-import eu.dca.model.EventDate;
-import eu.dca.model.EventPlace;
-import eu.dca.model.EventSet;
-import eu.dca.model.EventWrap;
-import eu.dca.model.InRoleActor;
-import eu.dca.model.LatestDate;
-import eu.dca.model.Lido;
-import eu.dca.model.LidoAdministrativeMetadata;
-import eu.dca.model.LidoDescriptiveMetadata;
-import eu.dca.model.LidoRecID;
-import eu.dca.model.LinkResource;
-import eu.dca.model.NameActorSet;
-import eu.dca.model.NamePlaceSet;
-import eu.dca.model.ObjectRelationWrap;
-import eu.dca.model.ObjectWorkType;
-import eu.dca.model.ResourceRepresentation;
-import eu.dca.model.ResourceSet;
-import eu.dca.model.ResourceWrap;
-import eu.dca.model.Subject;
-import eu.dca.model.SubjectConcept;
-import eu.dca.model.SubjectSet;
-import eu.dca.model.SubjectWrap;
-import eu.dca.model.Term;
-import eu.dca.model.TitleSet;
-import eu.dca.model.TitleWrap;
+import eu.dca.model.*;
+import java.io.*;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.File;
+import java.net.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.ArrayList;
+import java.util.TreeSet;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.RequestScoped;
 import javax.faces.bean.ViewScoped;
@@ -50,6 +25,8 @@ import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.log4j.Logger;
+import org.richfaces.skin.SkinFactory;
+import javax.servlet.*;
 
 @ManagedBean(name = "lidoBean")
 @RequestScoped
@@ -76,8 +53,10 @@ public class LidoBean {
     //properties
     private String id="1";
     private String baselang="eng";    
-
-
+    
+    private String currentUrl ="";
+    private String xmlstring="";
+    
     //Record Data
     private String recordidlbl;    
     private String recordid;    
@@ -92,22 +71,58 @@ public class LidoBean {
     private String reclabellbl;
     private String reclabel;
     
+    //Category Data
+    private String conceptid="";
+    private String conceptidlbl="";
+    private String categoryterm="";
+    private String categorytermlbl="";
+    
+    //Repository
+    private String repositoryname="";
+    private String repositorynamelbl="";
+    private String repositoryworkid="";
+    private String repositoryworkidlbl="";
+    
     //Administrative Metadata
     private String reslink;
+    private String reslinklbl=""; 
     private String otitlelbl="";    
     private String otitle="";    
     private String titlelbl="";    
     private String title="";
     private String typelbl="";
-    private String type="";    
+    private String type=""; 
     
+    private String recWraprecid = "";
+    private String recWraprecidlbl = "";
+    private String recWraprectype = "";
+    private String recWraprectypelbl = "";
+    private String recWraprecsource = "";
+    private String recWraprecsourcelbl = "";
+    private String recWraprecrights = "";
+    private String recWraprecrightslbl = "";
+    
+    private String measurementType="";
+    private String measurementUnit="";
+    private String measurementValue="";
+    private String measurementlbl="";
+    
+    private String omeasurement = "";
+    private String skin = "";
+    private String logoImage = "dca_logo_3.png";
+       
     private List subconceptterms = new ArrayList<String>();    
-    private List events = new ArrayList<LidoEvent>();    
+    private List events = new ArrayList<LidoEvent>(); 
+    private List adminResources = new ArrayList<AdminResource>();
+    private List adminRecWraps = new ArrayList<AdminResource>();
+    private List languagesList = new ArrayList<String>();
+    private TreeSet<String> languagesTree = new TreeSet<String>();
     
-    
-    public LidoBean(){
+    public LidoBean() throws MalformedURLException, IOException{
         log.info("LidoBean() constructor called");
         HttpServletRequest request=(HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest();
+        //URL url = new URL("http://localhost/1.xml");
+               
         //Get Request ID XML
         if (request.getParameter("id")!=null) {
             id=request.getParameter("id");
@@ -122,14 +137,23 @@ public class LidoBean {
         } else {
             log.info("LidoBean() Existing baselang:"+baselang );
         }
+        
+        this.currentUrl = request.getRequestURI();
+        this.currentUrl += "?id="+id;        
+       
         //Load Properties
         loadProperties(baselang);
         //Load XML
         loadXML(id);
+        //Detect available languages
+        detectLanguages();
         //initlabels
         initLabels();
         //initFields
         initFields();
+        
+        changeSkin(id);
+        
     }//EoCon
     
     private void loadProperties(String lang){
@@ -144,23 +168,78 @@ public class LidoBean {
     }//EoM
     
     private void loadXML(String id) {
-        getLog().info("LidoBean.loadXML() called with id:"+id);
-        String filename = id + ".xml";
+        getLog().info("LidoBean.loadXML() called with id:"+id);  
+        String canonicalPath = "";
         try {
+            canonicalPath = new java.io.File (".").getCanonicalPath();
+        } catch (IOException ex) {
+            java.util.logging.Logger.getLogger(LidoBean.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        getLog().info("LidoBean.loadXML() canonicalPath: "+canonicalPath);
+        String filename = canonicalPath+"/../tempFiles/"+id + ".xml";
+        //String filename = "./../resources/images/"+ id + ".xml";;
+        try {
+            
+            HttpServletRequest request=(HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest();
+            getLog().info("Skin factory:"+request.getSession().getServletContext().getInitParameter("org.richfaces.skin"));
             Reader inp = new BufferedReader(new InputStreamReader(new FileInputStream(filename), "UTF8"));
+            setLido(Lido.unmarshal(inp));
+            inp.close();
+            getLog().info("LidoBean.loadXML() loaded successfully");    
+            
+            //store xml file to a string variable: this.xmlstring
+            getLog().info("LidoBean.loadXML(): converting xml file to string");
+            //this.xmlstring = readFile("C:\\lidoviewer\\"+id + ".xml");
+            this.xmlstring = readFile(filename);
+            
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        
+        
+    }//EoM 
+    
+    private void loadXMLInputStream(URL url) {
+        
+        getLog().info("LidoBean.loadXMLInputStream() called with id:"+id);        
+        try {
+            Reader inp = new BufferedReader(new InputStreamReader(url.openStream(), "UTF8"));
             setLido(Lido.unmarshal(inp));
             inp.close();
             getLog().info("LidoBean.loadXML() loaded successfully");            
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-    }//EoM 
+    }
+    
+    private void changeSkin(String id){
+        
+        //set skin
+        //SkinBean skinbean = new SkinBean();
+            //this.logoImage = id+".jpg";
+            getLog().info("Choosing skin...");
+            if(id.equalsIgnoreCase("1")){
+                getLog().info("skin is set to classic");                
+                this.skin = "classic";
+            }else if(id.equalsIgnoreCase("2")){
+                getLog().info("skin is set to wine");                
+                this.skin = "wine";
+            }else if(id.equalsIgnoreCase("3")){
+                getLog().info("skin is set to blueSky");                
+                this.skin = "blueSky";
+            }else{
+                getLog().info("skin is set to japanCherry");                
+                this.skin = "japanCherry";            
+            }
+    
+    }
     
     
     private void initLabels() {
         getLog().info("LidoBean.initLabels() called with baselang:"+baselang);
         //Record
-        this.recordidlbl = getRes().getString("recordid");        
+        this.recordidlbl = getRes().getString("recordid");         
         this.recpreflbl = getRes().getString("recpref");
         this.rectypelbl = getRes().getString("rectype");
         this.recsourcelbl = getRes().getString("recsource");
@@ -170,6 +249,26 @@ public class LidoBean {
         this.otitlelbl = getRes().getString("otitle");
         this.titlelbl = getRes().getString("title");
         this.typelbl = getRes().getString("type");
+        
+        this.repositorynamelbl = getRes().getString("repositorynamelbl");
+        this.repositoryworkidlbl = getRes().getString("repositoryworkidlbl");
+        
+        //Administrative data labels
+        this.recWraprecidlbl = getRes().getString("recWraprecidlbl");
+        this.recWraprecrightslbl = getRes().getString("recWraprecrightslbl");
+        this.recWraprecsourcelbl = getRes().getString("recWraprecsourcelbl");
+        this.recWraprectypelbl = getRes().getString("recWraprectypelbl");
+        
+        this.reslinklbl = getRes().getString("reslinklbl");
+        this.measurementlbl = getRes().getString("measurementlbl");
+        
+        this.conceptidlbl = getRes().getString("conceptidlbl");
+        this.categorytermlbl = getRes().getString("categorytermlbl");
+        
+        this.measurementlbl = getRes().getString("measurementlbl");
+        
+        
+        
         getLog().info("LidoBean.initLabels() loaded successfully");                    
     }//EoM initLabels    
     
@@ -191,9 +290,15 @@ public class LidoBean {
             this.recenc = record.getEncodinganalog();
             //label      
             this.reclabel = record.getLabel();
+            
+            //-------------category Elements
+            Category category = getLido().getCategory();
+            //concept ID
+            this.conceptid = category.getConceptID(0).getContent();
+            //term
+            this.categoryterm = category.getTerm(0).getContent();
 
             //-------------Descriptive metadata            
-            
             int descount = getLido().getLidoDescriptiveMetadataCount();
             for (int dc=0;dc<descount;dc++){
                 LidoDescriptiveMetadata description = getLido().getLidoDescriptiveMetadata(dc);
@@ -212,6 +317,41 @@ public class LidoBean {
                            }//base-lang found
                         }//for AppellationValues
                     }//for titleSets
+                    
+                    /*get objectIdentificationWrap.inscriptions*/
+                    /*InscriptionsWrap iwrap = description.getObjectIdentificationWrap().getInscriptionsWrap();
+                    if(iwrap.getInscriptionsCount()>0){ //cardinality: 0-inf
+                        for(int ic=0; ic<iwrap.getInscriptionsCount(); ic++){
+                            
+                            
+                            
+                        }
+                        
+                    }*/
+                    
+                    /*get repository*/
+                    RepositoryWrap repowrap = description.getObjectIdentificationWrap().getRepositoryWrap();
+                    //suppose cardinality: 1
+                    RepositorySet reposet = repowrap.getRepositorySet(0);
+                        RepositoryName reponame = reposet.getRepositoryName();
+                        if(reponame != null){
+                            AppellationValue appelation = reponame.getLegalBodyName(0).getAppellationValue(0);
+                            this.repositoryname = appelation.getContent();
+                        }
+                        
+                        if(reposet.getWorkIDCount()>0){
+                            
+                            WorkID wid = reposet.getWorkID(0);
+                            this.repositoryworkid = wid.getContent();
+                        
+                        }
+                    /* get Measurements*/
+                    ObjectMeasurementsWrap oMeasurementSet = description.getObjectIdentificationWrap().getObjectMeasurementsWrap();
+                    //suppose cardinality: 1
+                    if( oMeasurementSet.getObjectMeasurementsSetCount()>0){
+                        ObjectMeasurementsSet MeasurementSet = oMeasurementSet.getObjectMeasurementsSet(0);
+                        this.omeasurement = MeasurementSet.getDisplayObjectMeasurements(0).getContent();
+                    }
                     
                     /* get Type */
                     int owtc = description.getObjectClassificationWrap().getObjectWorkTypeWrap().getObjectWorkTypeCount();
@@ -324,28 +464,159 @@ public class LidoBean {
             }//for-master iteration
             
            //-------------Administrative metadata
-
             int admincount = getLido().getLidoAdministrativeMetadataCount();
             for (int ac = 0; ac < admincount; ac++) {
                 LidoAdministrativeMetadata admindata = getLido().getLidoAdministrativeMetadata(ac);
                 if (admindata.getLang().trim().equalsIgnoreCase(baselang)) {
+                    /*get recordWrap*/
+                    RecordWrap recwrap = admindata.getRecordWrap();
+                    if (recwrap != null){
+                        if(recwrap.getRecordIDCount()>0){ //assuming record cardinality: 1
+                            this.recWraprecid = recwrap.getRecordID(0).getContent();
+                            this.recWraprectype = recwrap.getRecordType().getTerm(0).getContent();
+                            
+                            this.recWraprecsource = recwrap.getRecordSource(0).getLegalBodyID(0).getContent()+"<br />";
+                            this.recWraprecsource += recwrap.getRecordSource(0).getLegalBodyName(0).getAppellationValue(0).getContent()+"<br />";
+                            this.recWraprecsource += recwrap.getRecordSource(0).getLegalBodyWeblink(0).getContent();
+                            
+                            this.recWraprecrights = recwrap.getRecordRights(0).getRightsHolder(0).getLegalBodyID(0).getContent()+"<br />";
+                            this.recWraprecrights += recwrap.getRecordRights(0).getRightsHolder(0).getLegalBodyName(0).getAppellationValue(0).getContent()+"<br />";
+                            this.recWraprecrights += recwrap.getRecordRights(0).getRightsHolder(0).getLegalBodyWeblink(0).getContent()+"<br />";                        }
+                    }
+                    /*get ResourceWrap*/
                     ResourceWrap rwap = admindata.getResourceWrap();
                     if (rwap != null) {
                         if (rwap.getResourceSetCount() > 0) {
-                            ResourceSet rset = rwap.getResourceSet(0);
-                            if (rset.getResourceRepresentationCount() > 0) {
-                                ResourceRepresentation rrep = rset.getResourceRepresentation(0);
-                                LinkResource linkres =  rrep.getLinkResource();
-                                this.reslink = linkres.getContent();
-                            }//ResourceRepresentationCount()>0
+                            log.info("getResourceSetCount called..."+rwap.getResourceSetCount() );
+                            for(int rsc = 0; rsc<rwap.getResourceSetCount(); rsc++){                                
+                                //ResourceSet rset = rwap.getResourceSet(0);
+                                ResourceSet rset = rwap.getResourceSet(rsc);
+                                if (rset.getResourceRepresentationCount() > 0) {
+                                    log.info("getResourceRepresentationCount() called..."+rset.getResourceRepresentationCount());
+                                    int adminresourcescount = rset.getResourceRepresentationCount();
+                                    for(int arc = 0; arc<adminresourcescount; arc++){
+
+                                        log.info("Admin resource no.:"+arc);
+                                        //get Resource representation set
+                                        ResourceRepresentation rrep = rset.getResourceRepresentation(arc);
+
+                                        //create new admin resource 
+                                        AdminResource aResource = new AdminResource();
+                                        
+
+                                        //get resource link
+                                        LinkResource linkres =  rrep.getLinkResource();
+                                        if(arc == 0 && rsc == 0){ //assign resLink                                        
+                                            this.reslink = linkres.getContent();
+                                        }
+                                        aResource.resourceLink = linkres.getContent();
+
+                                        //get into ResourceMeasurementsSet
+                                        if(rrep.getResourceMeasurementsSetCount()>0){
+                                            ResourceMeasurementsSet mset = rrep.getResourceMeasurementsSet(arc);
+                                            MeasurementType mtype = mset.getMeasurementType(0);
+                                            aResource.measurementType = mtype.getContent();
+                                            log.info("mtype:"+aResource.measurementType);
+
+                                            MeasurementUnit mUnit = mset.getMeasurementUnit(0);
+                                            aResource.measurementUnit = mUnit.getContent();
+                                            log.info("munit:"+aResource.measurementUnit);
+
+                                            MeasurementValue mValue = mset.getMeasurementValue();
+                                            aResource.measurementValue = mValue.getContent();
+                                            log.info("mvalue:"+aResource.measurementValue);
+
+                                            //add it in the list!                                    
+                                            this.adminResources.add(aResource);
+                                        }
+                                        
+                                    }
+
+                                    /*ResourceRepresentation rrep = rset.getResourceRepresentation(0);
+                                    LinkResource linkres =  rrep.getLinkResource();
+                                    this.reslink = linkres.getContent();
+
+                                    ResourceMeasurementsSet mset = rrep.getResourceMeasurementsSet(0);
+                                    MeasurementType mtype = mset.getMeasurementType(0);
+                                    this.measurementType = mtype.getContent();
+                                    */
+                                }//ResourceRepresentationCount()>0                            
+                            }                            
                         }//ResourceSetCount()>0
                     }//ResourceWrap!=null
                 }//baselang found
             }//for-master iteration
+            
 
         }//lido!=null
     }//EoM initFields
     
+    private void detectLanguages() {
+        
+        getLog().info("LidoBean.detectLanguages() called");
+        
+        //open xml file and 
+        //String langstring = "<lido:descriptiveMetadata xml:lang = \'deuh\'>";
+        //this.langstring = xmlstring;
+        String langarray[];
+        
+        Pattern pattern = Pattern.compile("xml:lang(\\s)*=(\\s)*[\"\'].*[\"\']");
+        //Pattern pattern = Pattern.compile("deu");
+        Matcher matcher = pattern.matcher(this.xmlstring);
+
+        List<String> listMatches = new ArrayList<String>();
+
+        while(matcher.find())
+        {
+            listMatches.add(matcher.group(0));
+        }
+
+        for(String s : listMatches)
+        {
+            langarray = s.split("[\"\']");
+            this.languagesTree.add(langarray[1]);
+        }
+        
+        //parse xml and search for xml:lang attribute
+        /*if (getLido() != null) {
+            
+            int admincount = getLido().getLidoAdministrativeMetadataCount();            
+            for (int ac = 0; ac < admincount; ac++) {
+                LidoAdministrativeMetadata admindata = getLido().getLidoAdministrativeMetadata(ac);
+                if (admindata.getLang().trim()!= null) {
+                    this.languagesTree.add(admindata.getLang().trim());
+                }
+            }
+            
+            int descount = getLido().getLidoDescriptiveMetadataCount();
+            for (int dc = 0; dc < descount; dc++) {
+                LidoDescriptiveMetadata descrdata = getLido().getLidoDescriptiveMetadata(dc);
+                if (descrdata.getLang().trim()!= null) {
+                    this.languagesTree.add(descrdata.getLang().trim());
+                } 
+            }
+            
+            this.languagesList.addAll(this.languagesTree);
+        }*/
+        this.languagesList.addAll(this.languagesTree);
+        
+        
+    }//EoM detectLanguages
+    
+    private String readFile( String file ) throws IOException {
+        
+        BufferedReader reader = new BufferedReader( new FileReader (file));
+        String         line = null;
+        StringBuilder  stringBuilder = new StringBuilder();
+        String         ls = System.getProperty("line.separator");
+
+        while( ( line = reader.readLine() ) != null ) {
+            stringBuilder.append( line );
+            stringBuilder.append( ls );
+        }
+
+        return stringBuilder.toString();
+}
     
     /**
      * @return the lido
@@ -614,6 +885,16 @@ public class LidoBean {
         this.reslink = reslink;
     }
 
+    public String getReslinklbl() {
+        return reslinklbl;
+    }
+
+    public void setReslinklbl(String reslinklbl) {
+        this.reslinklbl = reslinklbl;
+    }
+    
+    
+
     /**
      * @return the otitlelbl
      */
@@ -697,6 +978,241 @@ public class LidoBean {
     public void setEvents(List events) {
         this.events = events;
     }
+
+    public String getMeasurementType() {
+        return measurementType;
+    }
+
+    public void setMeasurementType(String measurementType) {
+        this.measurementType = measurementType;
+    }
+
+    public String getMeasurementUnit() {
+        return measurementUnit;
+    }
+
+    public void setMeasurementUnit(String measurementUnit) {
+        this.measurementUnit = measurementUnit;
+    }
+
+    public String getMeasurementValue() {
+        return measurementValue;
+    }
+
+    public void setMeasurementValue(String measurementValue) {
+        this.measurementValue = measurementValue;
+    }
+
+    public String getMeasurementlbl() {
+        return measurementlbl;
+    }
+
+    public void setMeasurementlbl(String measurementlbl) {
+        this.measurementlbl = measurementlbl;
+    }
+
+    public List getAdminResources() {
+        return adminResources;
+    }
+
+    public void setAdminResources(List adminResources) {
+        this.adminResources = adminResources;
+    }
+
+    public String getCategoryterm() {
+        return categoryterm;
+    }
+
+    public void setCategoryterm(String categoryterm) {
+        this.categoryterm = categoryterm;
+    }
+
+    public String getConceptid() {
+        return conceptid;
+    }
+
+    public void setConceptid(String conceptid) {
+        this.conceptid = conceptid;
+    }
+
+    public String getCategorytermlbl() {
+        return categorytermlbl;
+    }
+
+    public void setCategorytermlbl(String categorytermlbl) {
+        this.categorytermlbl = categorytermlbl;
+    }
+
+    public String getConceptidlbl() {
+        return conceptidlbl;
+    }
+
+    public void setConceptidlbl(String conceptidlbl) {
+        this.conceptidlbl = conceptidlbl;
+    }
+
+    public String getRepositoryname() {
+        return repositoryname;
+    }
+
+    public void setRepositoryname(String repositoryname) {
+        this.repositoryname = repositoryname;
+    }
+
+    public String getRepositoryworkid() {
+        return repositoryworkid;
+    }
+
+    public void setRepositoryworkid(String repositoryworkid) {
+        this.repositoryworkid = repositoryworkid;
+    }
+
+    public String getRepositorynamelbl() {
+        return repositorynamelbl;
+    }
+
+    public void setRepositorynamelbl(String repositorynamelbl) {
+        this.repositorynamelbl = repositorynamelbl;
+    }
+
+    public String getRepositoryworkidlbl() {
+        return repositoryworkidlbl;
+    }
+
+    public void setRepositoryworkidlbl(String repositoryworkidlbl) {
+        this.repositoryworkidlbl = repositoryworkidlbl;
+    }
+
+    public String getOmeasurement() {
+        return omeasurement;
+    }
+
+    public void setOmeasurement(String omeasurement) {
+        this.omeasurement = omeasurement;
+    }
+
+    public List getAdminRecWraps() {
+        return adminRecWraps;
+    }
+
+    public void setAdminRecWraps(List adminRecWraps) {
+        this.adminRecWraps = adminRecWraps;
+    }
+
+    public String getRecWraprecid() {
+        return recWraprecid;
+    }
+
+    public void setRecWraprecid(String recWraprecid) {
+        this.recWraprecid = recWraprecid;
+    }
+
+    public String getRecWraprecidlbl() {
+        return recWraprecidlbl;
+    }
+
+    public void setRecWraprecidlbl(String recWraprecidlbl) {
+        this.recWraprecidlbl = recWraprecidlbl;
+    }
+
+    public String getRecWraprecrights() {
+        return recWraprecrights;
+    }
+
+    public void setRecWraprecrights(String recWraprecrights) {
+        this.recWraprecrights = recWraprecrights;
+    }
+
+    public String getRecWraprecrightslbl() {
+        return recWraprecrightslbl;
+    }
+
+    public void setRecWraprecrightslbl(String recWraprecrightslbl) {
+        this.recWraprecrightslbl = recWraprecrightslbl;
+    }
+
+    public String getRecWraprecsource() {
+        return recWraprecsource;
+    }
+
+    public void setRecWraprecsource(String recWraprecsource) {
+        this.recWraprecsource = recWraprecsource;
+    }
+
+    public String getRecWraprecsourcelbl() {
+        return recWraprecsourcelbl;
+    }
+
+    public void setRecWraprecsourcelbl(String recWraprecsourcelbl) {
+        this.recWraprecsourcelbl = recWraprecsourcelbl;
+    }
+
+    public String getRecWraprectype() {
+        return recWraprectype;
+    }
+
+    public void setRecWraprectype(String recWraprectype) {
+        this.recWraprectype = recWraprectype;
+    }
+
+    public String getRecWraprectypelbl() {
+        return recWraprectypelbl;
+    }
+
+    public void setRecWraprectypelbl(String recWraprectypelbl) {
+        this.recWraprectypelbl = recWraprectypelbl;
+    }
+
+    public String getCurrentUrl() {
+        return currentUrl;
+    }
+
+    public void setCurrentUrl(String currentUrl) {
+        this.currentUrl = currentUrl;
+    }
+
+    public List getLanguagesList() {
+        return languagesList;
+    }
+
+    public void setLanguagesList(List languagesList) {
+        this.languagesList = languagesList;
+    }
+
+    public TreeSet<String> getLanguagesTree() {
+        return languagesTree;
+    }
+
+    public void setLanguagesTree(TreeSet<String> languagesTree) {
+        this.languagesTree = languagesTree;
+    }
+
+    public String getXmlstring() {
+        return xmlstring;
+    }
+
+    public void setXmlstring(String xmlstring) {
+        this.xmlstring = xmlstring;
+    }
+
+    public String getSkin() {
+        return skin;
+    }
+
+    public void setSkin(String skin) {
+        this.skin = skin;
+    }
+
+    public String getLogoImage() {
+        return logoImage;
+    }
+
+    public void setLogoImage(String logoImage) {
+        this.logoImage = logoImage;
+    }
+
+   
+    
     
     
     

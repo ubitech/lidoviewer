@@ -8,7 +8,7 @@
     <!-- Plugging the "Blue Sky" skin into the project -->
     <context-param>
         <param-name>org.richfaces.skin</param-name>
-        <param-value>blueSky</param-value>
+        <param-value>classic</param-value>
     </context-param>
     <!-- Making the RichFaces skin spread to standard HTML controls -->
     <context-param>
