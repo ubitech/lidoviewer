@@ -39,7 +39,7 @@
 
                        <!-- patroklos configuration  -->
                        <configuration>
-                           <hostname>192.168.1.201</hostname>
+                           <hostname>192.168.1.202</hostname>
                            <port>9999</port>
                            <username>admin</username>
                            <password>jboss</password>

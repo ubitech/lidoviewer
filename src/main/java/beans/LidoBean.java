@@ -171,14 +171,15 @@ public class LidoBean {
         getLog().info("LidoBean.loadXML() called with id:"+id);  
         String canonicalPath = "";
         try {
-            canonicalPath = new java.io.File (".").getCanonicalPath();
-        } catch (IOException ex) {
+            canonicalPath =   ((ServletContext)FacesContext.getCurrentInstance().getExternalContext().getContext()).getRealPath("");
+            log.info("canonicalPath:"+canonicalPath);
+        } catch (Exception ex) {
             java.util.logging.Logger.getLogger(LidoBean.class.getName()).log(Level.SEVERE, null, ex);
         }
         
         getLog().info("LidoBean.loadXML() canonicalPath: "+canonicalPath);
-        String filename = canonicalPath+"/../tempFiles/"+id + ".xml";
-        //String filename = "./../resources/images/"+ id + ".xml";;
+        String filename = canonicalPath+"/resources/tempFiles/"+id + ".xml";
+        log.info("filename:"+filename);
         try {
             
             HttpServletRequest request=(HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest();
@@ -187,17 +188,14 @@ public class LidoBean {
             setLido(Lido.unmarshal(inp));
             inp.close();
             getLog().info("LidoBean.loadXML() loaded successfully");    
-            
-            //store xml file to a string variable: this.xmlstring
+
             getLog().info("LidoBean.loadXML(): converting xml file to string");
-            //this.xmlstring = readFile("C:\\lidoviewer\\"+id + ".xml");
             this.xmlstring = readFile(filename);
-            
+            //TODO load from URL also
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-        
-        
+
     }//EoM 
     
     private void loadXMLInputStream(URL url) {
