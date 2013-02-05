@@ -11,12 +11,25 @@
     <ui:define name="logo">
         <h:graphicImage id="logoimg" url="../resources/images/#{lidoBean.logoImage}" rendered="#{not empty lidoBean.logoImage}"/>
     </ui:define>
-
-    <ui:define name="languages">
+    
+    <!--ui:define name="languages">
         <ui:repeat var="language" value="#{lidoBean.languagesList}" varStatus="status">
             <h:outputLink value="#{lidoBean.currentUrl}&amp;baselang=#{language}">#{language}</h:outputLink>&nbsp;
         </ui:repeat>     
-    </ui:define>    
+    </ui:define-->  
+    
+    <ui:define name="languages">
+        <h:form id="lidoFormXML">
+        <ui:repeat var="language" value="#{lidoBean.languagesList}" varStatus="status">            
+            <h:commandLink onmouseover="" onclick="document.getElementById('lidoFormXML:baselang').value='#{language}';">#{language}</h:commandLink>&nbsp;
+        </ui:repeat> 
+            <h:inputHidden id="baselang" value="#{language}"/>
+            <h:inputHidden id="xmlData" value='#{lidoBean.xmlData}'/>
+            
+        </h:form>
+    </ui:define>  
+
+      
    
     <ui:define name="content">
   <!--
@@ -109,7 +122,7 @@
                         </h:form>
 
                         <h:form id="form2">
-                            <h:panelGrid width="100%" rendered="#{not empty lidoBean.events}}">
+                            <h:panelGrid width="100%" rendered="#{not empty lidoBean.events}">
                                 <rich:dataTable id="eventtable" value="#{lidoBean.events}" var="event" iterationStatusVar="it"  rows="7"  >
                                     <rich:column >
                                         <f:facet name="header"> <h:outputText value="Index" /></f:facet>
