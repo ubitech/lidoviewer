@@ -52,6 +52,7 @@ public class LidoBean {
     private Lido lido;    
     //properties
     private String id="1";
+    private String xmlData = "";
     private String baselang="eng";    
     
     private String currentUrl ="";
@@ -122,6 +123,17 @@ public class LidoBean {
         log.info("LidoBean() constructor called");
         HttpServletRequest request=(HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest();
         //URL url = new URL("http://localhost/1.xml");
+        
+        //get POST XML data
+        if (request.getParameter("xmlData")!=null) {            
+            this.xmlData = request.getParameter("xmlData");
+            //log.info("LidoBean() New XML loaded:"+this.xmlData);
+        
+        //reload POST XML data in case the languages are selected    
+        }else if (request.getParameter("lidoFormXML:xmlData")!=null) {            
+            this.xmlData = request.getParameter("lidoFormXML:xmlData");
+            //log.info("LidoBean() New XML  loaded with POST:"+this.xmlData);
+        }
                
         //Get Request ID XML
         if (request.getParameter("id")!=null) {
@@ -133,8 +145,11 @@ public class LidoBean {
         //Get baselang
         if (request.getParameter("baselang")!=null) {
             baselang=request.getParameter("baselang");
-            log.info("LidoBean() New baselang loaded:"+baselang);
-        } else {
+            log.info("LidoBean() New baselang loaded:"+baselang);            
+        }else if(request.getParameter("lidoFormXML:baselang")!=null){
+            baselang=request.getParameter("lidoFormXML:baselang");
+            log.info("LidoBean() New baselang loaded with POST:"+baselang);
+        }else {
             log.info("LidoBean() Existing baselang:"+baselang );
         }
         
@@ -144,7 +159,7 @@ public class LidoBean {
         //Load Properties
         loadProperties(baselang);
         //Load XML
-        loadXML(id);
+        loadXML(id, xmlData);
         //Detect available languages
         detectLanguages();
         //initlabels
@@ -167,7 +182,7 @@ public class LidoBean {
         }        
     }//EoM
     
-    private void loadXML(String id) {
+    private void loadXML(String id, String xmlData) {
         getLog().info("LidoBean.loadXML() called with id:"+id);  
         String canonicalPath = "";
         try {
@@ -184,13 +199,15 @@ public class LidoBean {
             
             HttpServletRequest request=(HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest();
             getLog().info("Skin factory:"+request.getSession().getServletContext().getInitParameter("org.richfaces.skin"));
-            Reader inp = new BufferedReader(new InputStreamReader(new FileInputStream(filename), "UTF8"));
+            //Reader inp = new BufferedReader(new InputStreamReader(new FileInputStream(filename), "UTF8"));
+            Reader inp = new StringReader(xmlData.replace("&", "&amp;"));
             setLido(Lido.unmarshal(inp));
             inp.close();
             getLog().info("LidoBean.loadXML() loaded successfully");    
 
             getLog().info("LidoBean.loadXML(): converting xml file to string");
-            this.xmlstring = readFile(filename);
+            //this.xmlstring = readFile(filename);
+            this.xmlstring = xmlData;
             //TODO load from URL also
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -1207,6 +1224,13 @@ public class LidoBean {
 
     public void setLogoImage(String logoImage) {
         this.logoImage = logoImage;
+    }
+     public String getXmlData() {
+        return xmlData;
+    }
+
+    public void setXmlData(String xmlData) {
+        this.xmlData = xmlData;
     }
 
    
