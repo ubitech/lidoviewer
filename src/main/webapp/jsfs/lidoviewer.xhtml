@@ -41,7 +41,7 @@
                 
                 <h:panelGrid columns="1" columnClasses="upper">               
                     <rich:panel header="Gallery" rendered="#{not empty lidoBean.reslink}">  
-                        <center><h:graphicImage value="#{lidoBean.reslink}" style="float: none;" /></center>
+                        <center><h:graphicImage value="#{lidoBean.reslink}" style="float: none;" width="70px" height="70px"/></center>
                     </rich:panel>
                     
                     <rich:panel header="Record Description">            
@@ -102,7 +102,10 @@
                             <h:outputText value="#{lidoBean.title}"                                 rendered="#{not empty lidoBean.title}"/>   
                             
                             <h:outputText value="#{lidoBean.typelbl}:"   style="font-weight:bold"  rendered="#{not empty lidoBean.type}"/>
-                            <h:outputText value="#{lidoBean.type}"                                 rendered="#{not empty lidoBean.type}"/>                                                        
+                            <h:outputText value="#{lidoBean.type}"                                 rendered="#{not empty lidoBean.type}"/>   
+                            
+                            <h:outputText value="#{lidoBean.odescvaluelbl}:"   style="font-weight:bold"  rendered="#{not empty lidoBean.odescvalue}"/>
+                            <h:outputText value="#{lidoBean.odescvalue}" rendered="#{not empty lidoBean.odescvalue}"/>     
                         </h:panelGrid>
                                                 
                         <h:form id="form1">
@@ -170,6 +173,26 @@
                             <h:outputText value="#{lidoBean.recWraprecrights}"        escape="false" rendered="#{not empty lidoBean.recWraprecrights}"/>
                         </h:panelGrid>
                        
+                       <h:panelGrid width="100%" rendered="#{not empty lidoBean.adminRightsHolders}">
+                           <rich:dataTable id="rightstable" value="#{lidoBean.adminRightsHolders}" iterationStatusVar="it" var="adminrightholder" rows="1">
+                               <rich:column>
+                               <f:facet name="header">
+                                   <h:outputText value="#{lidoBean.rightsWraplegalbodynamelbl}" style="font-weight:bold"></h:outputText>
+                               </f:facet>
+                                   <h:outputText value="#{adminrightholder.legalBodyName}" rendered="#{not empty adminrightholder.legalBodyName}"/>
+                               </rich:column>
+                               
+                                <rich:column>
+                               <f:facet name="header">
+                                   <h:outputText value="#{lidoBean.rightsWraplegalbodyweblinklbl}" style="font-weight:bold"></h:outputText>
+                               </f:facet>
+                                   <h:outputText value="#{adminrightholder.legalBodyWeblink}" rendered="#{not empty adminresource.legalBodyWeblink}"/>
+                               </rich:column>
+                                                             
+                               <rich:dataScroller for="adminresourcestable" maxPages="3" /> 
+                           </rich:dataTable>
+                           <rich:dataScroller for="adminresourcestable" maxPages="5" />
+                       </h:panelGrid>
                        
                        <h:panelGrid width="100%" rendered="#{not empty lidoBean.adminResources}">
                            <rich:dataTable id="adminresourcestable" value="#{lidoBean.adminResources}" iterationStatusVar="it" var="adminresource" rows="1">
@@ -177,7 +200,7 @@
                                <f:facet name="header">
                                    <h:outputText value="Resource link" style="font-weight:bold"></h:outputText>
                                </f:facet>
-                                   <h:graphicImage value="#{adminresource.resourceLink}" rendered="#{not empty adminresource.resourceLink}" style="float:none" />
+                                   <h:graphicImage value="#{adminresource.resourceLink}" rendered="#{not empty adminresource.resourceLink}" style="float:none"  width="70px" height="70px"/>
                                    
                                </rich:column>
                                
@@ -192,7 +215,7 @@
                            </rich:dataTable>
                            <rich:dataScroller for="adminresourcestable" maxPages="5" />
                            </h:panelGrid>
-                               <!--
+                              <!-- 
                            <h:outputText value="#{lidoBean.reslinklbl}:" style="font-weight:bold"  rendered="#{not empty lidoBean.recordid}"/>
                            <h:outputText value="#{lidoBean.reslink}"                               rendered="#{not empty lidoBean.reslink}"/>
                            

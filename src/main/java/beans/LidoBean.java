@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.File;
+import java.lang.Class;
 import java.net.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -27,6 +28,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.log4j.Logger;
 import org.richfaces.skin.SkinFactory;
 import javax.servlet.*;
+import org.apache.commons.lang3.*;
 
 @ManagedBean(name = "lidoBean")
 @RequestScoped
@@ -49,11 +51,13 @@ public class LidoBean {
     }
     private ResourceBundle res;
     //Base Object
-    private Lido lido;    
+    private Lido lido;
+    private LidoElement lidoelement;
+    private LidoWrap lidowrap; 
     //properties
     private String id="1";
     private String xmlData = "";
-    private String baselang="eng";    
+    private String baselang="en";    
     
     private String currentUrl ="";
     private String xmlstring="";
@@ -83,6 +87,7 @@ public class LidoBean {
     private String repositorynamelbl="";
     private String repositoryworkid="";
     private String repositoryworkidlbl="";
+    private String odescvaluelbl ="";
     
     //Administrative Metadata
     private String reslink;
@@ -93,6 +98,13 @@ public class LidoBean {
     private String title="";
     private String typelbl="";
     private String type=""; 
+    private String odescvalue ="";
+    
+    private String rightsWraplegalbodyname = "";
+    private String rightsWraplegalbodyweblink = "";
+    
+    private String rightsWraplegalbodynamelbl = "";
+    private String rightsWraplegalbodyweblinklbl = "";
     
     private String recWraprecid = "";
     private String recWraprecidlbl = "";
@@ -116,6 +128,7 @@ public class LidoBean {
     private List events = new ArrayList<LidoEvent>(); 
     private List adminResources = new ArrayList<AdminResource>();
     private List adminRecWraps = new ArrayList<AdminResource>();
+    private List adminRightsHolders = new ArrayList<String>();
     private List languagesList = new ArrayList<String>();
     private TreeSet<String> languagesTree = new TreeSet<String>();
     
@@ -126,15 +139,15 @@ public class LidoBean {
         
         //get POST XML data
         if (request.getParameter("xmlData")!=null) {            
-            this.xmlData = request.getParameter("xmlData");
-            //log.info("LidoBean() New XML loaded:"+this.xmlData);
+            this.xmlData = request.getParameter("xmlData").trim();
+            log.info("LidoBean() New XML loaded:"+URLDecoder.decode( this.xmlData, "UTF-8" ));
         
         //reload POST XML data in case the languages are selected    
         }else if (request.getParameter("lidoFormXML:xmlData")!=null) {            
             this.xmlData = request.getParameter("lidoFormXML:xmlData");
-            //log.info("LidoBean() New XML  loaded with POST:"+this.xmlData);
+            log.info("LidoBean() New XML  loaded with POST:"+URLDecoder.decode( this.xmlData, "UTF-8" ));
         }
-               
+        log.info("LidoBean() Lido Content:"+this.xmlData);       
         //Get Request ID XML
         if (request.getParameter("id")!=null) {
             id=request.getParameter("id");
@@ -172,7 +185,7 @@ public class LidoBean {
     }//EoCon
     
     private void loadProperties(String lang){
-        getLog().info("LidoBean.loadProperties() called with base-lang:"+lang);
+        //getLog().info("LidoBean.loadProperties() called with base-lang:"+lang);
         String filename = "properties.lido"+lang;
         try {
             setRes(ResourceBundle.getBundle(filename));
@@ -200,8 +213,9 @@ public class LidoBean {
             HttpServletRequest request=(HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest();
             getLog().info("Skin factory:"+request.getSession().getServletContext().getInitParameter("org.richfaces.skin"));
             //Reader inp = new BufferedReader(new InputStreamReader(new FileInputStream(filename), "UTF8"));
-            Reader inp = new StringReader(xmlData.replace("&", "&amp;"));
-            setLido(Lido.unmarshal(inp));
+            //Reader inp = new StringReader(xmlData.replace("&", "&amp;"));
+            Reader inp = new StringReader(URLDecoder.decode(xmlData, "UTF-8" ));
+            setLido(LidoWrap.unmarshal(inp).getLidoElement(0));            
             inp.close();
             getLog().info("LidoBean.loadXML() loaded successfully");    
 
@@ -220,7 +234,8 @@ public class LidoBean {
         getLog().info("LidoBean.loadXMLInputStream() called with id:"+id);        
         try {
             Reader inp = new BufferedReader(new InputStreamReader(url.openStream(), "UTF8"));
-            setLido(Lido.unmarshal(inp));
+            //setLido(Lido.unmarshal(inp));
+            
             inp.close();
             getLog().info("LidoBean.loadXML() loaded successfully");            
         } catch (Exception ex) {
@@ -264,11 +279,15 @@ public class LidoBean {
         this.otitlelbl = getRes().getString("otitle");
         this.titlelbl = getRes().getString("title");
         this.typelbl = getRes().getString("type");
+        this.odescvaluelbl = getRes().getString("noteValue");
         
         this.repositorynamelbl = getRes().getString("repositorynamelbl");
         this.repositoryworkidlbl = getRes().getString("repositoryworkidlbl");
         
         //Administrative data labels
+        this.rightsWraplegalbodynamelbl = getRes().getString("legalBodyName");
+        this.rightsWraplegalbodyweblinklbl = getRes().getString("legalBodyWeblink");
+        
         this.recWraprecidlbl = getRes().getString("recWraprecidlbl");
         this.recWraprecrightslbl = getRes().getString("recWraprecrightslbl");
         this.recWraprecsourcelbl = getRes().getString("recWraprecsourcelbl");
@@ -309,27 +328,42 @@ public class LidoBean {
             //-------------category Elements
             Category category = getLido().getCategory();
             //concept ID
-            this.conceptid = category.getConceptID(0).getContent();
-            //term
-            this.categoryterm = category.getTerm(0).getContent();
-
+            if(category != null){
+                
+                if(category.getConceptIDCount() > 0){
+                    this.conceptid = category.getConceptID(0).getContent();
+                }
+                
+                if(category.getTermCount()>0){
+                    
+                    //term
+                    this.categoryterm = category.getTerm(0).getContent();
+                }
+            }
+            
+            
+            
             //-------------Descriptive metadata            
             int descount = getLido().getLidoDescriptiveMetadataCount();
+            log.info("Descriptive metadata:"+descount);
             for (int dc=0;dc<descount;dc++){
                 LidoDescriptiveMetadata description = getLido().getLidoDescriptiveMetadata(dc);
-                if (description.getLang().trim().equalsIgnoreCase(baselang)) {
+                //if (description.getLang().trim().equalsIgnoreCase(baselang)) {
                     /* get Title */
+                   
                     TitleWrap twrap = description.getObjectIdentificationWrap().getTitleWrap();
+                     
                     int tsc = twrap.getTitleSetCount();
+                    getLog().info("Title wrap: "+tsc); 
                     for (int ts=0;ts<tsc;ts++){
                         TitleSet titleset = twrap.getTitleSet(ts);
                         int avc = titleset.getAppellationValueCount();
                         for (int av=0;av<avc;av++){
                            AppellationValue appelation = titleset.getAppellationValue(av);
                            if (appelation.getLang()==null) this.otitle = appelation.getContent(); else
-                           if (appelation.getLang().trim().equalsIgnoreCase(baselang)){
+                           //if (appelation.getLang().trim().equalsIgnoreCase(baselang)){
                                this.title = appelation.getContent();
-                           }//base-lang found
+                           //}//base-lang found
                         }//for AppellationValues
                     }//for titleSets
                     
@@ -343,11 +377,23 @@ public class LidoBean {
                         }
                         
                     }*/
+                    /*get objectIdentificationWrap.objectDescriptionWrap*/
+                    /*ObjectDescriptionWrap owrap = description.getObjectIdentificationWrap().getObjectDescriptionWrap();
+                     if(owrap.getObjectDescriptionSetCount()>0){ //cardinality: 0-inf
+                        for(int odc=0; odc<owrap.getObjectDescriptionSetCount(); odc++){
+                            DescriptiveNoteValue descNoteValue = owrap.getObjectDescriptionSet(odc).getDescriptiveNoteValue(0);
+                            //type+= ( (type==null || type.equalsIgnoreCase(""))? getMultilingualContent(term.getLang(), term.getContent()) : ","+getMultilingualContent(term.getLang(), term.getContent()) );
+                            this.odescvalue += ((type==null || type.equalsIgnoreCase(""))?getMultilingualContent(descNoteValue.getLang(), descNoteValue.getContent()): ","+getMultilingualContent(descNoteValue.getLang(), descNoteValue.getContent())); 
+                            
+                        }
+                        
+                    }*/
                     
                     /*get repository*/
                     RepositoryWrap repowrap = description.getObjectIdentificationWrap().getRepositoryWrap();
                     //suppose cardinality: 1
-                    RepositorySet reposet = repowrap.getRepositorySet(0);
+                    if(repowrap != null && repowrap.getRepositorySetCount() > 0){
+                        RepositorySet reposet = repowrap.getRepositorySet(0);
                         RepositoryName reponame = reposet.getRepositoryName();
                         if(reponame != null){
                             AppellationValue appelation = reponame.getLegalBodyName(0).getAppellationValue(0);
@@ -360,13 +406,22 @@ public class LidoBean {
                             this.repositoryworkid = wid.getContent();
                         
                         }
+                    }
+                    
                     /* get Measurements*/
                     ObjectMeasurementsWrap oMeasurementSet = description.getObjectIdentificationWrap().getObjectMeasurementsWrap();
                     //suppose cardinality: 1
-                    if( oMeasurementSet.getObjectMeasurementsSetCount()>0){
+                    if(oMeasurementSet !=  null && oMeasurementSet.getObjectMeasurementsSetCount() > 0){
+                        if( oMeasurementSet.getObjectMeasurementsSetCount()>0){
                         ObjectMeasurementsSet MeasurementSet = oMeasurementSet.getObjectMeasurementsSet(0);
-                        this.omeasurement = MeasurementSet.getDisplayObjectMeasurements(0).getContent();
+                        if(MeasurementSet.getDisplayObjectMeasurementsCount() > 0){
+                            this.omeasurement = MeasurementSet.getDisplayObjectMeasurements(0).getContent();
+                        }
+                        
+                        }
+                    
                     }
+                    
                     
                     /* get Type */
                     int owtc = description.getObjectClassificationWrap().getObjectWorkTypeWrap().getObjectWorkTypeCount();
@@ -375,7 +430,7 @@ public class LidoBean {
                         int termcount = objwt.getTermCount();
                         for (int termc=0;termc<termcount;termc++){
                             Term term = objwt.getTerm(termc);
-                            type+= ( (type==null || type.equalsIgnoreCase(""))? term.getContent() : ","+term.getContent() );
+                            type+= ( (type==null || type.equalsIgnoreCase(""))? getMultilingualContent(term.getLang(), term.getContent()) : ","+getMultilingualContent(term.getLang(), term.getContent()) );
                         }//for
                     }//for   
                     
@@ -456,18 +511,29 @@ public class LidoBean {
                                 EventActor eventactor = event.getEventActor(a);
                                 if (eventactor!=null){
                                     ActorInRole actorinrole = eventactor.getActorInRole();                                    
-                                    InRoleActor inroleactor = actorinrole.getInRoleActor();
-                                    if (inroleactor!=null){
-                                        int nasc = inroleactor.getNameActorSetCount();
-                                        for (int nas=0;nas<nasc;nas++){
-                                            NameActorSet namaeactorset = inroleactor.getNameActorSet(nas);
-                                            int avc = namaeactorset.getAppellationValueCount();
-                                            for(int av=0;av<avc;av++){
-                                                AppellationValue appellation = namaeactorset.getAppellationValue(av);
-                                                levent.actors += ( (levent.actors==null || levent.actors.equalsIgnoreCase(""))? appellation.getContent() : ","+appellation.getContent() );
-                                            }//for
-                                        }//for                                        
-                                    }//if
+                                    if(actorinrole != null){
+                                        InRoleActor inroleactor = actorinrole.getInRoleActor();
+                                        if (inroleactor!=null){
+                                            int nasc = inroleactor.getNameActorSetCount();
+                                            for (int nas=0;nas<nasc;nas++){
+                                                NameActorSet namaeactorset = inroleactor.getNameActorSet(nas);
+                                                int avc = namaeactorset.getAppellationValueCount();
+                                                for(int av=0;av<avc;av++){
+                                                    AppellationValue appellation = namaeactorset.getAppellationValue(av);
+                                                    levent.actors += ( (levent.actors==null || levent.actors.equalsIgnoreCase(""))? appellation.getContent() : ","+appellation.getContent() );
+                                                }//for
+                                            }//for                                        
+                                        }//if
+                                    }
+                                    int dispcnt = eventactor.getDisplayActorInRoleCount();
+                                    if(dispcnt >0){
+                                       for(int da=0; da<dispcnt; da++){
+                                           DisplayActorInRole displayactor = eventactor.getDisplayActorInRole(da);
+                                           levent.actors += ( (levent.actors==null || levent.actors.equalsIgnoreCase(""))?displayactor.getContent() : ","+displayactor.getContent() ) ;
+                                       }
+                                        
+                                    }
+                                    
                                 }//if                                
                             }//for
                             //Add to Gridview
@@ -475,28 +541,83 @@ public class LidoBean {
                         }//for
                     }//not null eventwrap
                     
-                }//baselang found
+                //}//baselang found
             }//for-master iteration
             
            //-------------Administrative metadata
             int admincount = getLido().getLidoAdministrativeMetadataCount();
+            log.info("Administrative Metadata:"+admincount);
             for (int ac = 0; ac < admincount; ac++) {
                 LidoAdministrativeMetadata admindata = getLido().getLidoAdministrativeMetadata(ac);
-                if (admindata.getLang().trim().equalsIgnoreCase(baselang)) {
+                //if (admindata.getLang().trim().equalsIgnoreCase(baselang)) {
+                
+                
+                    /*get rightsWrap*/
+                    RightsWorkWrap rightswrap = admindata.getRightsWorkWrap();
+                    if(rightswrap != null){
+                        if(rightswrap.getRightsWorkSetCount()>0){
+                            for(int rs=0; rs<rightswrap.getRightsWorkSetCount(); rs++){
+                                RightsWorkSet rightsSet = rightswrap.getRightsWorkSet(rs);
+                                //create new LidoRightsHolder object
+                                for(int rh=0; rh<rightsSet.getRightsHolderCount(); rh++){
+
+                                    RightsHolder rightsHolder = rightsSet.getRightsHolder(rh);
+                                    LidoRightsHolder lidoRightsHolder = new LidoRightsHolder();
+                                    lidoRightsHolder.legalBodyName = rightsHolder.getLegalBodyName(0).getAppellationValue(0).getContent();
+                                    if(rightsHolder.getLegalBodyWeblinkCount() > 0){
+                                        lidoRightsHolder.legalBodyWeblink = rightsHolder.getLegalBodyWeblink(0).getContent();
+                                    }
+                                    
+
+                                    this.adminRightsHolders.add(lidoRightsHolder);
+
+                                }
+                            }
+                        }
+                    }
                     /*get recordWrap*/
                     RecordWrap recwrap = admindata.getRecordWrap();
                     if (recwrap != null){
-                        if(recwrap.getRecordIDCount()>0){ //assuming record cardinality: 1
-                            this.recWraprecid = recwrap.getRecordID(0).getContent();
+                        log.info("Administrative Metadata/Record wrap:"+admincount);
+                        if(recwrap.getRecordIDCount()>0){ 
+                            this.recWraprecid = recwrap.getRecordID(0).getContent();                            
+                           
                             this.recWraprectype = recwrap.getRecordType().getTerm(0).getContent();
                             
-                            this.recWraprecsource = recwrap.getRecordSource(0).getLegalBodyID(0).getContent()+"<br />";
-                            this.recWraprecsource += recwrap.getRecordSource(0).getLegalBodyName(0).getAppellationValue(0).getContent()+"<br />";
-                            this.recWraprecsource += recwrap.getRecordSource(0).getLegalBodyWeblink(0).getContent();
+                            if(recwrap.getRecordSource(0).getLegalBodyIDCount() > 0){
+                                this.recWraprecsource = recwrap.getRecordSource(0).getLegalBodyID(0).getContent()+"<br />";
+                                
+                                if(recwrap.getRecordSource(0).getLegalBodyNameCount() > 0){
+                                    this.recWraprecsource += recwrap.getRecordSource(0).getLegalBodyName(0).getAppellationValue(0).getContent()+"<br />";                                
+                                }
+                                
+                                if(recwrap.getRecordSource(0).getLegalBodyWeblinkCount() > 0){
+                                    this.recWraprecsource += recwrap.getRecordSource(0).getLegalBodyWeblink(0).getContent();                              
+                                }
+                            }
                             
-                            this.recWraprecrights = recwrap.getRecordRights(0).getRightsHolder(0).getLegalBodyID(0).getContent()+"<br />";
-                            this.recWraprecrights += recwrap.getRecordRights(0).getRightsHolder(0).getLegalBodyName(0).getAppellationValue(0).getContent()+"<br />";
-                            this.recWraprecrights += recwrap.getRecordRights(0).getRightsHolder(0).getLegalBodyWeblink(0).getContent()+"<br />";                        }
+                            if(recwrap.getRecordRightsCount() > 0){
+                                
+                                if(recwrap.getRecordRights(0).getRightsHolderCount() > 0){                                    
+                                    if(recwrap.getRecordRights(0).getRightsHolder(0).getLegalBodyIDCount() > 0){
+                                        this.recWraprecrights = recwrap.getRecordRights(0).getRightsHolder(0).getLegalBodyID(0).getContent()+"<br />"; 
+                                    } 
+                                    
+                                    if(recwrap.getRecordRights(0).getRightsHolder(0).getLegalBodyNameCount() > 0){
+                                        if(recwrap.getRecordRights(0).getRightsHolder(0).getLegalBodyName(0).getAppellationValueCount() > 0){
+                                            this.recWraprecrights += recwrap.getRecordRights(0).getRightsHolder(0).getLegalBodyName(0).getAppellationValue(0).getContent()+"<br />"; 
+                                        }
+                                        
+                                    }
+                                    
+                                    if(recwrap.getRecordRights(0).getRightsHolderCount() > 0){
+                                        if(recwrap.getRecordRights(0).getRightsHolder(0).getLegalBodyWeblinkCount() > 0){
+                                            this.recWraprecrights += recwrap.getRecordRights(0).getRightsHolder(0).getLegalBodyWeblink(0).getContent()+"<br />"; 
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                     /*get ResourceWrap*/
                     ResourceWrap rwap = admindata.getResourceWrap();
@@ -525,6 +646,7 @@ public class LidoBean {
                                             this.reslink = linkres.getContent();
                                         }
                                         aResource.resourceLink = linkres.getContent();
+                                        log.info("aResource.resourceLink: "+aResource.resourceLink);
 
                                         //get into ResourceMeasurementsSet
                                         if(rrep.getResourceMeasurementsSetCount()>0){
@@ -540,10 +662,11 @@ public class LidoBean {
                                             MeasurementValue mValue = mset.getMeasurementValue();
                                             aResource.measurementValue = mValue.getContent();
                                             log.info("mvalue:"+aResource.measurementValue);
-
-                                            //add it in the list!                                    
-                                            this.adminResources.add(aResource);
+                                            
                                         }
+                                        
+                                        //add it in the list!                                    
+                                            this.adminResources.add(aResource);
                                         
                                     }
 
@@ -559,7 +682,7 @@ public class LidoBean {
                             }                            
                         }//ResourceSetCount()>0
                     }//ResourceWrap!=null
-                }//baselang found
+                //}//baselang found
             }//for-master iteration
             
 
@@ -636,15 +759,15 @@ public class LidoBean {
     /**
      * @return the lido
      */
-    public Lido getLido() {
-        return lido;
+    public LidoElement getLido() {
+        return lidoelement;
     }
 
     /**
      * @param lido the lido to set
      */
-    public void setLido(Lido lido) {
-        this.lido = lido;
+    public void setLido(LidoElement lidoelement) {
+        this.lidoelement = lidoelement;
     }
 //----------------------------------------------------
 
@@ -1232,6 +1355,89 @@ public class LidoBean {
     public void setXmlData(String xmlData) {
         this.xmlData = xmlData;
     }
+
+    public LidoWrap getLidowrap() {
+        return lidowrap;
+    }
+
+    public void setLidowrap(LidoWrap lidowrap) {
+        this.lidowrap = lidowrap;
+    }
+
+    public String getRightsWraplegalbodyname() {
+        return rightsWraplegalbodyname;
+    }
+
+    public void setRightsWraplegalbodyname(String rightsWraplegalbodyname) {
+        this.rightsWraplegalbodyname = rightsWraplegalbodyname;
+    }
+
+    public String getRightsWraplegalbodyweblink() {
+        return rightsWraplegalbodyweblink;
+    }
+
+    public void setRightsWraplegalbodyweblink(String rightsWraplegalbodyweblink) {
+        this.rightsWraplegalbodyweblink = rightsWraplegalbodyweblink;
+    }
+
+    public List getAdminRightsHolders() {
+        return adminRightsHolders;
+    }
+
+    public void setAdminRightsHolders(List adminRightsHolders) {
+        this.adminRightsHolders = adminRightsHolders;
+    }
+
+    public String getRightsWraplegalbodynamelbl() {
+        return rightsWraplegalbodynamelbl;
+    }
+
+    public void setRightsWraplegalbodynamelbl(String rightsWraplegalbodynamelbl) {
+        this.rightsWraplegalbodynamelbl = rightsWraplegalbodynamelbl;
+    }
+
+    public String getRightsWraplegalbodyweblinklbl() {
+        return rightsWraplegalbodyweblinklbl;
+    }
+
+    public void setRightsWraplegalbodyweblinklbl(String rightsWraplegalbodyweblinklbl) {
+        this.rightsWraplegalbodyweblinklbl = rightsWraplegalbodyweblinklbl;
+    }
+
+    public String getOdescvaluelbl() {
+        return odescvaluelbl;
+    }
+
+    public void setOdescvaluelbl(String odescvaluelbl) {
+        this.odescvaluelbl = odescvaluelbl;
+    }
+
+    public String getOdescvalue() {
+        return odescvalue;
+    }
+
+    public void setOdescvalue(String odescvalue) {
+        this.odescvalue = odescvalue;
+    }
+    
+    
+    
+    public String getMultilingualContent(String language, String lidoElementContent){
+        log.info("getMultilingualContent:"+language+" "+lidoElementContent);
+        //if language is the same, display value
+        if (language == null || language != null && language.trim().equalsIgnoreCase(baselang)) {
+            
+            return lidoElementContent;
+        
+        }else{
+        
+            return lidoElementContent+"("+language+")";
+        }
+    
+    
+    }
+    
+    
 
    
     

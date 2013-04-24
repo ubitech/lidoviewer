@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<lido:lido xmlns:lido="http://www.lido-schema.org" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.lido-schema.org http://www.lido-schema.org/schema/v1.0/lido-v1.0.xsd">
+<lido:lidoWrap xmlns:lido="http://www.lido-schema.org" xmlns:xalan="http://xml.apache.org/xalan">
+  <lido:lido>
 	<lido:lidoRecID lido:source="Deutsches Dokumentationszentrum f?r Kunstgeschichte - Bildarchiv Foto Marburg" lido:type="local">DE-Mb112/lido-obj00154983</lido:lidoRecID>
 	<lido:category>
 		<lido:conceptID lido:type="URI">http://www.cidoc-crm.org/crm-concepts/E22</lido:conceptID>
@@ -53,7 +54,7 @@
 			<lido:eventSet>
 				<lido:event>
 					<lido:eventType>
-						<lido:term>creation</lido:term>
+						<lido:term>Creation</lido:term>
 					</lido:eventType>
 					<lido:eventActor>
 						<lido:actorInRole>
@@ -109,7 +110,7 @@
 			<lido:eventSet>
 				<lido:event>
 					<lido:eventType>
-						<lido:term>restoration</lido:term>
+						<lido:term>Restoration</lido:term>
 					</lido:eventType>
 					<lido:eventDate>
 						<lido:date>
@@ -122,7 +123,7 @@
 			<lido:eventSet>
 				<lido:event>
 					<lido:eventType>
-						<lido:term>provenance</lido:term>
+						<lido:term>Provenance</lido:term>
 					</lido:eventType>
 					<lido:eventDate>
 						<lido:date>
@@ -160,7 +161,7 @@
 			<lido:eventSet>
 				<lido:event>
 					<lido:eventType>
-						<lido:term>provenance</lido:term>
+						<lido:term>Provenance</lido:term>
 					</lido:eventType>
 					<lido:eventDate>
 						<lido:date>
@@ -200,14 +201,14 @@
 						<lido:subjectConcept>
 							<lido:conceptID lido:source="Iconclass" lido:type="local">23 D 42</lido:conceptID>
 							<lido:term>23 D 42</lido:term>
-							<lido:term lido:addedSearchTerm="yes">spring, 'Ver'; 'Primavera' (Ripa)</lido:term>
+							<lido:term lido:addedSearchTerm="yes">spring, "Ver"; "Primavera" (Ripa)</lido:term>
 							<lido:term lido:addedSearchTerm="yes">Ver &amp; Primavera</lido:term>
 							<lido:term lido:addedSearchTerm="yes">nature</lido:term>
 							<lido:term lido:addedSearchTerm="yes">nature</lido:term>
 							<lido:term lido:addedSearchTerm="yes">time</lido:term>
 							<lido:term lido:addedSearchTerm="yes">time</lido:term>
-							<lido:term lido:addedSearchTerm="yes">seasons of the year (esp. personifications); 'Stagione', 'Le quattro stagione dell'anno' (Ripa)</lido:term>
-							<lido:term lido:addedSearchTerm="yes">stagione &amp; quattro stagione dell'anno (le) &amp; season &amp; summer &amp; winter &amp; spring &amp; autumn</lido:term>
+							<lido:term lido:addedSearchTerm="yes">seasons of the year (esp. personifications); "Stagione", "Le quattro stagione dell"anno" (Ripa)</lido:term>
+							<lido:term lido:addedSearchTerm="yes">stagione &amp; quattro stagione dell"anno (le) &amp; season &amp; summer &amp; winter &amp; spring &amp; autumn</lido:term>
 							<lido:term lido:addedSearchTerm="yes">year divided into four seasons</lido:term>
 							<lido:term lido:addedSearchTerm="yes">four</lido:term>
 							<lido:term lido:addedSearchTerm="yes">spring; Ripa: Ver; Primavera</lido:term>
@@ -219,7 +220,7 @@
 						<lido:subjectConcept>
 							<lido:conceptID lido:source="Iconclass" lido:type="local">57 A 9 :</lido:conceptID>
 							<lido:term>57 A 9 :</lido:term>
-							<lido:term lido:addedSearchTerm="yes">Humanity, Politeness; 'Cortesia', 'Humanit?' (Ripa)</lido:term>
+							<lido:term lido:addedSearchTerm="yes">Humanity, Politeness; "Cortesia", "Humanit?" (Ripa)</lido:term>
 							<lido:term lido:addedSearchTerm="yes">humanity &amp; humanit? &amp; politeness &amp; cortesia &amp; courtesy</lido:term>
 							<lido:term lido:addedSearchTerm="yes">abstract ideas and concepts</lido:term>
 							<lido:term lido:addedSearchTerm="yes">abstract ideas and concepts &amp; allegory &amp; personification</lido:term>
@@ -255,7 +256,7 @@
 						<lido:subjectConcept>
 							<lido:conceptID lido:source="Iconclass" lido:type="local">92 D 3</lido:conceptID>
 							<lido:term>92 D 3</lido:term>
-							<lido:term lido:addedSearchTerm="yes">Graces (Charites), generally three in number; 'Gratie' (Ripa)</lido:term>
+							<lido:term lido:addedSearchTerm="yes">Graces (Charites), generally three in number; "Gratie" (Ripa)</lido:term>
 							<lido:term lido:addedSearchTerm="yes">Graces &amp; three &amp; Gratie</lido:term>
 							<lido:term lido:addedSearchTerm="yes">classical mythology und ancient history</lido:term>
 							<lido:term lido:addedSearchTerm="yes">mythology &amp; ancient history &amp; history &amp; classical antiquity &amp; religion &amp; Greek &amp; Roman</lido:term>
@@ -263,7 +264,7 @@
 							<lido:term lido:addedSearchTerm="yes">god (non-christian)</lido:term>
 							<lido:term lido:addedSearchTerm="yes">lesser divinities of Heaven ~ serving and attendant environment</lido:term>
 							<lido:term lido:addedSearchTerm="yes">serving &amp; god (non-christian) &amp; Cupid &amp; hours &amp; graces &amp; muses &amp; Nike &amp; Iris &amp; Hebe &amp; Ganymede</lido:term>
-							<lido:term lido:addedSearchTerm="yes">Graces (Charites), generally three in number; 'Gratie' (Ripa)</lido:term>
+							<lido:term lido:addedSearchTerm="yes">Graces (Charites), generally three in number; "Gratie" (Ripa)</lido:term>
 						</lido:subjectConcept>
 					</lido:subject>
 				</lido:subjectSet>
@@ -282,7 +283,7 @@
 							<lido:term lido:addedSearchTerm="yes">air &amp; sky &amp; heaven &amp; god (non-christian)</lido:term>
 							<lido:term lido:addedSearchTerm="yes">gods of the winds</lido:term>
 							<lido:term lido:addedSearchTerm="yes">wind</lido:term>
-							<lido:term lido:addedSearchTerm="yes">(story of) Zephyrus (Favonius), the west wind; 'Favonio o Zeffiro' (Ripa)</lido:term>
+							<lido:term lido:addedSearchTerm="yes">(story of) Zephyrus (Favonius), the west wind; "Favonio o Zeffiro" (Ripa)</lido:term>
 							<lido:term lido:addedSearchTerm="yes">Zephyrus &amp; wind &amp; westwind &amp; Favonio o Zeffiro</lido:term>
 							<lido:term lido:addedSearchTerm="yes">love affairs of Zephyrus</lido:term>
 							<lido:term lido:addedSearchTerm="yes">Zephyrus &amp; love affair &amp; west wind</lido:term>
@@ -387,7 +388,7 @@
 			<lido:eventSet>
 				<lido:event>
 					<lido:eventType>
-						<lido:term>Herstellung</lido:term>
+						<lido:term>Acquisition</lido:term>
 					</lido:eventType>
 					<lido:eventActor>
 						<lido:actorInRole>
@@ -443,7 +444,7 @@
 			<lido:eventSet>
 				<lido:event>
 					<lido:eventType>
-						<lido:term>Restaurierung</lido:term>
+						<lido:term>Acquisition</lido:term>
 					</lido:eventType>
 					<lido:eventDate>
 						<lido:date>
@@ -456,7 +457,7 @@
 			<lido:eventSet>
 				<lido:event>
 					<lido:eventType>
-						<lido:term>Herkunft</lido:term>
+						<lido:term>Acquisition</lido:term>
 					</lido:eventType>
 					<lido:eventDate>
 						<lido:date>
@@ -494,7 +495,7 @@
 			<lido:eventSet>
 				<lido:event>
 					<lido:eventType>
-						<lido:term>Herkunft</lido:term>
+						<lido:term>Acquisition</lido:term>
 					</lido:eventType>
 					<lido:eventDate>
 						<lido:date>
@@ -540,8 +541,8 @@
 							<lido:term lido:addedSearchTerm="yes">Natur</lido:term>
 							<lido:term lido:addedSearchTerm="yes">Zeit</lido:term>
 							<lido:term lido:addedSearchTerm="yes">Zeit</lido:term>
-							<lido:term lido:addedSearchTerm="yes">Jahreszeiten (insbesondere ihre Personifikationen); Ripa: Stagione, Le quattro stagione dell'anno</lido:term>
-							<lido:term lido:addedSearchTerm="yes">stagione &amp; quattro stagione dell'anno (le) &amp; Jahreszeit &amp; Sommer &amp; Winter &amp; Fr?hling &amp; Herbst</lido:term>
+							<lido:term lido:addedSearchTerm="yes">Jahreszeiten (insbesondere ihre Personifikationen); Ripa: Stagione, Le quattro stagione dell"anno</lido:term>
+							<lido:term lido:addedSearchTerm="yes">stagione &amp; quattro stagione dell"anno (le) &amp; Jahreszeit &amp; Sommer &amp; Winter &amp; Fr?hling &amp; Herbst</lido:term>
 							<lido:term lido:addedSearchTerm="yes">Aufteilung des Jahres in vier Jahreszeiten</lido:term>
 							<lido:term lido:addedSearchTerm="yes">vier</lido:term>
 							<lido:term lido:addedSearchTerm="yes">Fr?hling; Ripa: Ver; Primavera</lido:term>
@@ -797,3 +798,4 @@
 		</lido:resourceWrap>
 	</lido:administrativeMetadata>
 </lido:lido>
+</lido:lidoWrap>
