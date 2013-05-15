@@ -31,7 +31,8 @@
 
       
    
-    <ui:define name="content">
+    <ui:define name="content">       
+        
   <!--
         <h:outputText value="#{lidoBean.skin}" rendered="#{not empty lidoBean.skin}"/>
         <h:outputText value="#{initParam['org.richfaces.skin']}" />
@@ -39,7 +40,7 @@
         <h:panelGroup id="mastergroup"  >
             <h:panelGrid columns="3" columnClasses="upper,seperator,upper">
                 
-                <h:panelGrid columns="1" columnClasses="upper">               
+                <h:panelGrid columns="1" columnClasses="upper">                   
                     <rich:panel header="Gallery" rendered="#{not empty lidoBean.reslink}">  
                         <center><h:graphicImage value="#{lidoBean.reslink}" style="float: none;" width="70px" height="70px"/></center>
                     </rich:panel>
@@ -93,7 +94,7 @@
                 </h:panelGrid>
                <h:panelGrid columns="1" columnClasses="upper">
                    <rich:panel header="Descriptive Metadata">  
-                    <h:panelGroup id="descrgroup" rendered="#{not empty lidoBean.otitle}">
+                    <h:panelGroup id="descrgroup">
                         <h:panelGrid columns="2"> 
                             <h:outputText value="#{lidoBean.otitlelbl}:"   style="font-weight:bold"  rendered="#{not empty lidoBean.otitle}"/>
                             <h:outputText value="#{lidoBean.otitle}"                                 rendered="#{not empty lidoBean.otitle}"/>                       
@@ -226,7 +227,8 @@
                    </h:panelGroup>
                </rich:panel>                 
                 
-            </h:panelGrid> 
+            </h:panelGrid>
+            
             </h:panelGrid>
             
             
