@@ -11,6 +11,7 @@ public String eventype="";
 public String date="";
 public String place="";
 public String actors="";
+public String material="";
 
     /**
      * @return the eventype
@@ -67,6 +68,16 @@ public String actors="";
     public void setActors(String actors) {
         this.actors = actors;
     }
+
+    public String getMaterial() {
+        return material;
+    }
+
+    public void setMaterial(String material) {
+        this.material = material;
+    }
+    
+    
 
 
 }//EoC LidoEvent

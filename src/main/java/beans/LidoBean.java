@@ -181,7 +181,7 @@ public class LidoBean {
         //initFields
         initFields();
         
-        changeSkin(id);
+        //changeSkin(id);
         
     }//EoCon
     
@@ -268,7 +268,7 @@ public class LidoBean {
     
     
     private void initLabels() {
-        getLog().info("LidoBean.initLabels() called with baselang:"+baselang);
+        getLog().info("LidoBean.initLabels() called with baselang:"+this.baselang);
         //Record
         this.recordidlbl = getRes().getString("recordid");         
         this.recpreflbl = getRes().getString("recpref");
@@ -345,8 +345,7 @@ public class LidoBean {
             
             
             //-------------Descriptive metadata            
-            int descount = getLido().getLidoDescriptiveMetadataCount();
-            log.info("Descriptive metadata:"+descount);
+            int descount = getLido().getLidoDescriptiveMetadataCount();            
             for (int dc=0;dc<descount;dc++){
                 LidoDescriptiveMetadata description = getLido().getLidoDescriptiveMetadata(dc);
                 //if (description.getLang().trim().equalsIgnoreCase(baselang)) {
@@ -580,55 +579,100 @@ public class LidoBean {
                                         levent.date += ( (levent.date==null || levent.date.equalsIgnoreCase(""))? latest.getContent() : ","+latest.getContent() );                                                        
                                     }
                                     getLog().info("LidoBean.getDisplayDateCount(): no."+eventdate.getDisplayDateCount());
-                                    if(eventdate.getDisplayDateCount()>0){
+                                    /*if(eventdate.getDisplayDateCount()>0){
                                         
                                         DisplayDate ddate = eventdate.getDisplayDate(0);
                                         levent.date += ( (levent.date==null || levent.date.equalsIgnoreCase(""))? ddate.getContent() : ","+ddate.getContent() );
                                         getLog().info("LidoBean levent.date: "+levent.date);
-                                    }
+                                    }*/
                                     
                                     
                                 }//not null date
+                                
+                                if(eventdate.getDisplayDateCount()>0){
+                                    for(int dd=0;dd<eventdate.getDisplayDateCount();dd++){
+                                        DisplayDate ddate = eventdate.getDisplayDate(dd);
+                                        if(ddate!=null){
+                                             levent.date += ( (levent.date==null || levent.date.equalsIgnoreCase(""))? ddate.getContent() : ","+ddate.getContent() );                                        
+                                        }
+                                    }
+                                }
+                                
                             }//not null EventDate
                             //3 - Event Place
                             int epc = event.getEventPlaceCount();
                             for (int ep=0;ep<epc;ep++){
                                 EventPlace eventplace = event.getEventPlace(ep);
-                                int npsc = eventplace.getPlace().getNamePlaceSetCount();
-                                for (int nps=0;nps<npsc;nps++){
-                                    NamePlaceSet nameplaceset = eventplace.getPlace().getNamePlaceSet(nps);
-                                    int avc = nameplaceset.getAppellationValueCount();
-                                    /*for(int av=0;av<avc;av++){
-                                        AppellationValue appellation = nameplaceset.getAppellationValue(av);
-                                         levent.place += ( (levent.place==null || levent.place.equalsIgnoreCase(""))? getMultilingualContent(appellation.getLang(), appellation.getContent()) : ","+getMultilingualContent(appellation.getLang(), appellation.getContent()) );
-                                    }//for
-                                    */
-                                    this.langList.clear();
-                                    for(int av=0;av<avc;av++){
-                                        AppellationValue appellation = nameplaceset.getAppellationValue(av);
-                                        this.langList.add(appellation.getLang());
-                                    }
-                                    if(this.langList.contains(baselang)){
-                                        
+                                if(eventplace.getPlace() != null){
+                                        int npsc = eventplace.getPlace().getNamePlaceSetCount();
+                                        for (int nps=0;nps<npsc;nps++){
+                                        NamePlaceSet nameplaceset = eventplace.getPlace().getNamePlaceSet(nps);
+                                        int avc = nameplaceset.getAppellationValueCount();
+                                        /*for(int av=0;av<avc;av++){
+                                            AppellationValue appellation = nameplaceset.getAppellationValue(av);
+                                             levent.place += ( (levent.place==null || levent.place.equalsIgnoreCase(""))? getMultilingualContent(appellation.getLang(), appellation.getContent()) : ","+getMultilingualContent(appellation.getLang(), appellation.getContent()) );
+                                        }//for
+                                        */
+                                        this.langList.clear();
                                         for(int av=0;av<avc;av++){
                                             AppellationValue appellation = nameplaceset.getAppellationValue(av);
-                                            if(appellation.getLang() != null && appellation.getLang().trim().equals(baselang)){
-                                                levent.place+= ( (levent.place==null || levent.place.equalsIgnoreCase(""))? appellation.getContent() : ","+appellation.getContent() );                        
-                                            }  
+                                            this.langList.add(appellation.getLang());
                                         }
-                                     
-                                    }else{
-                                        
-                                         for(int av=0;av<avc;av++){
-                                            AppellationValue appellation = nameplaceset.getAppellationValue(av);
-                                            levent.place += ( (levent.place==null || levent.place.equalsIgnoreCase(""))? getMultilingualContent(appellation.getLang(), appellation.getContent()) : ","+getMultilingualContent(appellation.getLang(), appellation.getContent()) );                      
-                                              
+                                        if(this.langList.contains(baselang)){
+
+                                            for(int av=0;av<avc;av++){
+                                                AppellationValue appellation = nameplaceset.getAppellationValue(av);
+                                                if(appellation.getLang() != null && appellation.getLang().trim().equals(baselang)){
+                                                    levent.place+= ( (levent.place==null || levent.place.equalsIgnoreCase(""))? appellation.getContent() : ","+appellation.getContent() );                        
+                                                }  
+                                            }
+
+                                        }else{
+
+                                             for(int av=0;av<avc;av++){
+                                                AppellationValue appellation = nameplaceset.getAppellationValue(av);
+                                                levent.place += ( (levent.place==null || levent.place.equalsIgnoreCase(""))? getMultilingualContent(appellation.getLang(), appellation.getContent()) : ","+getMultilingualContent(appellation.getLang(), appellation.getContent()) );                      
+
+                                            }
+
                                         }
+
+                                    }//for                                
+                                }
+                            }//for
+                            
+                            //displayMaterialsTech
+                            int dmcount = event.getEventMaterialsTechCount();                            
+                            if(dmcount>0){                                
+                                for(int dmc=0;dmc<dmcount;dmc++){
+                                    int materialCount = event.getEventMaterialsTech(dmc).getDisplayMaterialsTechCount();
+                                    
+                                    this.langList.clear();
+                                    for(int mc=0;mc<materialCount; mc++){
                                         
+                                        DisplayMaterialsTech material = event.getEventMaterialsTech(dmc).getDisplayMaterialsTech(mc);                                        
+                                        this.langList.add(material.getLang());
                                     }
                                     
-                                }//for
-                            }//for
+                                    if(this.langList.contains(baselang)){
+                                            for (int mc=0;mc<materialCount; mc++){
+                                                DisplayMaterialsTech material = event.getEventMaterialsTech(dmc).getDisplayMaterialsTech(mc);
+                                                if(material.getLang() != null && material.getLang().trim().equals(baselang)){
+                                                    levent.material+= ( (levent.material==null || levent.material.equalsIgnoreCase(""))? material.getContent() : ","+material.getContent() );                        
+                                                }                        
+                                            }
+                                    }else{
+
+                                        for (int mc=0;mc<materialCount; mc++){
+                                            DisplayMaterialsTech material = event.getEventMaterialsTech(dmc).getDisplayMaterialsTech(mc);
+                                            levent.material+= ( (levent.material==null || levent.material.equalsIgnoreCase(""))? getMultilingualContent(material.getLang(), material.getContent()) : ","+getMultilingualContent(material.getLang(), material.getContent()) );
+
+                                        }
+
+                                    }
+                                }//eof for
+                            }//eof Material section
+                            
                             //4 - Event Actor
                             int ac = event.getEventActorCount();
                             for (int a=0;a<ac;a++){
@@ -734,11 +778,10 @@ public class LidoBean {
                                     RightsHolder rightsHolder = rightsSet.getRightsHolder(rh);
                                     LidoRightsHolder lidoRightsHolder = new LidoRightsHolder();
                                     lidoRightsHolder.legalBodyName = getMultilingualContent(rightsHolder.getLegalBodyName(0).getAppellationValue(0).getLang(), rightsHolder.getLegalBodyName(0).getAppellationValue(0).getContent());
+                                    log.info("legalBodyWeblinkcount:"+rightsHolder.getLegalBodyWeblinkCount());
                                     if(rightsHolder.getLegalBodyWeblinkCount() > 0){
                                         lidoRightsHolder.legalBodyWeblink = getMultilingualContent(rightsHolder.getLegalBodyWeblink(0).getLang(), rightsHolder.getLegalBodyWeblink(0).getContent());
-                                    }                                    
-
-                                    
+                                    } 
                                     this.adminRightsHolders.add(lidoRightsHolder);
 
                                 }
@@ -750,10 +793,13 @@ public class LidoBean {
                     if (recwrap != null){
                         log.info("Administrative Metadata/Record wrap:"+admincount);
                         if(recwrap.getRecordIDCount()>0){ 
-                            this.recWraprecid = recwrap.getRecordID(0).getContent();                            
-                           
-                            this.recWraprectype = recwrap.getRecordType().getTerm(0).getContent();
+                            this.recWraprecid = recwrap.getRecordID(0).getContent();
                             
+                            if(recwrap.getRecordType().getTermCount()>0){
+                                
+                                this.recWraprectype = recwrap.getRecordType().getTerm(0).getContent();
+                            
+                            }
                             if(recwrap.getRecordSource(0).getLegalBodyIDCount() > 0){
                                 this.recWraprecsource = recwrap.getRecordSource(0).getLegalBodyID(0).getContent()+"<br />";
                                 

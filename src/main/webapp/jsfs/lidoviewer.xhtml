@@ -147,7 +147,11 @@
                                     <rich:column   >
                                         <f:facet name="header"><h:outputText value="Actors" /></f:facet>
                                         <h:outputText value="#{event.actors}" />
-                                    </rich:column>                                                            
+                                    </rich:column>
+                                     <rich:column   >
+                                        <f:facet name="header"><h:outputText value="Material" /></f:facet>
+                                        <h:outputText value="#{event.material}" />
+                                    </rich:column> 
                                 </rich:dataTable>                        
                             <rich:dataScroller for="eventtable" maxPages="3" />                       
                             </h:panelGrid>
