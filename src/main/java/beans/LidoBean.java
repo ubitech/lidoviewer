@@ -137,7 +137,7 @@ public class LidoBean {
         log.info("LidoBean() constructor called");
         HttpServletRequest request=(HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest();
         //URL url = new URL("http://localhost/1.xml");
-        //request.setCharacterEncoding("UTF-8");
+        request.setCharacterEncoding("UTF-8");
         //get POST XML data
         if (request.getParameter("xmlData")!=null) {            
             this.xmlData = request.getParameter("xmlData").trim();
@@ -187,7 +187,7 @@ public class LidoBean {
     
     private void loadProperties(String lang){
         //getLog().info("LidoBean.loadProperties() called with base-lang:"+lang);
-        String filename = "properties.lido"+lang;
+        String filename = "properties.lido"+lang.toLowerCase();
         try {
             setRes(ResourceBundle.getBundle(filename));
             getLog().info("LidoBean.loadProperties() Resources loaded successfully");  
@@ -778,9 +778,11 @@ public class LidoBean {
                                     RightsHolder rightsHolder = rightsSet.getRightsHolder(rh);
                                     LidoRightsHolder lidoRightsHolder = new LidoRightsHolder();
                                     lidoRightsHolder.legalBodyName = getMultilingualContent(rightsHolder.getLegalBodyName(0).getAppellationValue(0).getLang(), rightsHolder.getLegalBodyName(0).getAppellationValue(0).getContent());
-                                    log.info("legalBodyWeblinkcount:"+rightsHolder.getLegalBodyWeblinkCount());
+                                    
                                     if(rightsHolder.getLegalBodyWeblinkCount() > 0){
+                                        
                                         lidoRightsHolder.legalBodyWeblink = getMultilingualContent(rightsHolder.getLegalBodyWeblink(0).getLang(), rightsHolder.getLegalBodyWeblink(0).getContent());
+                                        log.info("legalBodyWeblink:"+lidoRightsHolder.legalBodyWeblink);
                                     } 
                                     this.adminRightsHolders.add(lidoRightsHolder);
 
